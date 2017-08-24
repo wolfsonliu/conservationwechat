@@ -13,7 +13,7 @@ import time
 # Variables
 #-------------------
 
-basedir = '/home/zhiheng/Documents/Work/nature/qingchuan/conservationwechat'
+basedir = './conservationwechat'
 htmldir = os.path.join(basedir, 'html')
 
 wxidlist = pd.read_csv(os.path.join(basedir, 'wxid1.csv'), header=None)
@@ -39,7 +39,7 @@ class WechatSpider(scrapy.Spider):
         ]
         # using sogou to search wechat article of certain publisher
         for url, referer in zip(urls, referers):
-            time.sleep(np.random.choice(list(range(20, 60))) * 10)
+            time.sleep(np.random.choice(list(range(20, 60))) * 20)
             yield scrapy.Request(
                 url=url,
                 callback=self.searchsogou,
@@ -53,22 +53,22 @@ class WechatSpider(scrapy.Spider):
         ).extract()
         for href in hrefs[:1]:
             print(href)
-            #time.sleep(np.random.choice(list(range(20, 60))) * 10)
+            time.sleep(np.random.choice(list(range(20, 60))) * 20)
             yield scrapy.Request(
                 url=href,
                 callback=self.parsewechat,
                 headers={'Referer': response.url}
             )
-        # next_page = response.css(
-        #     'div.main-left div.news-box div.p-fy a.np::attr(href)'
-        # ).extract_first()
-        # if next_page is not None:
-        #     nextpage = 'http://weixin.sogou.com/weixin' + next_page
-        #     yield scrapy.Request(
-        #         nextpage,
-        #         callback=self.searchsogou,
-        #         headers={'Referer': response.url}
-        #     )
+        next_page = response.css(
+            'div.main-left div.news-box div.p-fy a.np::attr(href)'
+        ).extract_first()
+        if next_page is not None:
+            nextpage = 'http://weixin.sogou.com/weixin' + next_page
+            yield scrapy.Request(
+                nextpage,
+                callback=self.searchsogou,
+                headers={'Referer': response.url}
+            )
 
     def parsewechat(self, response):
         # store the wechat artile information
